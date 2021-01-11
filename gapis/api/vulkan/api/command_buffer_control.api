@@ -199,6 +199,8 @@ enum CommandType {
   cmd_vkCmdSetDeviceMask                 = 55,
   cmd_vkCmdDispatchBaseKHR               = 56,
   cmd_vkCmdDispatchBase                  = 57,
+  cmd_vkCmdBeginConditionalRenderingEXT  = 58,
+  cmd_vkCmdEndConditionalRenderingEXT    = 59,
   cmd_vkNoCommand                        = 0xFFFFFFFF
 }
 
@@ -280,6 +282,8 @@ enum SemaphoreUpdate {
   @untrackedMap dense_map!(u32, ref!vkCmdSetDeviceMaskArgs)            vkCmdSetDeviceMask
   @untrackedMap dense_map!(u32, ref!vkCmdDispatchBaseKHRArgs)          vkCmdDispatchBaseKHR
   @untrackedMap dense_map!(u32, ref!vkCmdDispatchBaseArgs)             vkCmdDispatchBase
+  @untrackedMap dense_map!(u32, ref!vkCmdBeginConditionalRenderingEXTArgs) vkCmdBeginConditionalRenderingEXT
+  @untrackedMap dense_map!(u32, ref!vkCmdEndConditionalRenderingEXTArgs)   vkCmdEndConditionalRenderingEXT
 }
 
 @internal class AspectImageTransition {
@@ -381,6 +385,7 @@ sub void AddCommand(
 cmd VkResult vkAllocateCommandBuffers(
     VkDevice                           device,
     const VkCommandBufferAllocateInfo* pAllocateInfo,
+    @len("pAllocateInfo::commandBufferCount")
     VkCommandBuffer*                   pCommandBuffers) {
   if !(device in Devices) { vkErrorInvalidDevice(device) }
   if pAllocateInfo == null { vkErrorNullPointer("VkCommandBufferAllocateInfo") }
@@ -424,6 +429,7 @@ cmd void vkFreeCommandBuffers(
     VkDevice               device,
     VkCommandPool          commandPool,
     u32                    commandBufferCount,
+    @len("commandBufferCount")
     const VkCommandBuffer* pCommandBuffers) {
   if !(device in Devices) { vkErrorInvalidDevice(device) }
   if !(commandPool in CommandPools) { vkErrorInvalidCommandPool(commandPool) }
@@ -606,6 +612,8 @@ sub void resetBufferCommands(ref!CommandBufferObject obj) {
   clear(obj.BufferCommands.vkCmdSetDeviceMask)
   clear(obj.BufferCommands.vkCmdDispatchBaseKHR)
   clear(obj.BufferCommands.vkCmdDispatchBase)
+  clear(obj.BufferCommands.vkCmdBeginConditionalRenderingEXT)
+  clear(obj.BufferCommands.vkCmdEndConditionalRenderingEXT)
 }
 
 sub void resetCommandBuffer(ref!CommandBufferObject obj) {
@@ -649,6 +657,7 @@ sub void dovkCmdExecuteCommands(ref!vkCmdExecuteCommandsArgs cmds) {
 cmd void vkCmdExecuteCommands(
     VkCommandBuffer        commandBuffer,
     u32                    commandBufferCount,
+    @len("commandBufferCount")
     const VkCommandBuffer* pCommandBuffers) {
   if !(commandBuffer in CommandBuffers) {
     vkErrorInvalidCommandBuffer(commandBuffer)
